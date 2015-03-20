@@ -439,7 +439,63 @@ load_dragon()
                          | (static_cast<unsigned int>(b * 255.0f) << 16);
     }
 }
+void 
+load_ply()
+{
+    std::ifstream f("c:/raw_data/color2/voxels.ply",std::ios::binary);
+    std::string s;
+    size_t num_v = 0;
+    while (s!="end_header")
+    {
+        f >> s;
+        if (s=="vertex")
+        {
+            f >> s;
+            num_v = std::stoul(s);
+        }   
+    }
+    char ch;
+    f.read(&ch, 1);
 
+    std::vector<std::pair<std::array<float,6>, std::array<unsigned char,3> > > data(num_v);
+    for (int i = 0; i < num_v; i++)
+    {
+        f.read((char*)data[i].first.data(), sizeof(float) * 6);
+        f.read((char*)data[i].second.data(), 3);
+    }
+    m_surfels.clear();
+    m_surfels.resize(num_v);
+    for (int i = 0; i < num_v; i++)
+    {
+        m_surfels[i].c[0] = data[i].first[3] / 100. - 2.0;
+        m_surfels[i].c[1] = data[i].first[4] / 100. + 1.0;
+        m_surfels[i].c[2] = data[i].first[5] / 100. ;
+
+        Vector3f tmp(-(data[i].first[1] + data[i].first[2]) / data[i].first[0], 1, 1);
+        tmp.normalize();
+        Vector3f norm(data[i].first[0], data[i].first[1], data[i].first[2]);
+        Vector3f tmp1 = tmp.cross(norm);
+        tmp *= 0.01;
+        tmp1 *= 0.01;
+        if (tmp1.cross(tmp).dot(norm) > 0)
+        {
+            m_surfels[i].v = tmp;
+            m_surfels[i].u = tmp1;
+        }
+        else
+        {
+            m_surfels[i].v = tmp1;
+            m_surfels[i].u = tmp;
+        }
+        ((unsigned char*)(&m_surfels[i].rgba))[0] = data[i].second[2];
+        ((unsigned char*)(&m_surfels[i].rgba))[1] = (std::min)(data[i].second[1]*1.2,255.);
+        ((unsigned char*)(&m_surfels[i].rgba))[2] = data[i].second[0]*0.8;
+        ((unsigned char*)(&m_surfels[i].rgba))[3] = 255;
+
+        m_surfels[i].p = Vector3f::Zero();
+    }
+    
+}
 void
 get_model(void* value, void* data)
 {
@@ -460,7 +516,8 @@ set_model(void const* value, void* data)
             load_cube();
             break;
         default:
-            load_dragon();
+            //load_dragon();
+            load_ply();
     }
 }
 

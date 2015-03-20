@@ -10,7 +10,13 @@ add_definitions(-DFREEGLUT_LIB_PRAGMAS=0 -DFREEGLUT_STATIC)
 file(TO_NATIVE_PATH "${PROJECT_SOURCE_DIR}/resources/" GLVIZ_RESOURCES_DIR)
 configure_file(config.hpp.in "${CMAKE_CURRENT_BINARY_DIR}/config.hpp")
 
-file(GLOB OPENGL_SHADERS shader/*)
+set(OPENGL_SHADERS 
+${CMAKE_CURRENT_SOURCE_DIR}/shader/attribute_fs.glsl
+${CMAKE_CURRENT_SOURCE_DIR}/shader/attribute_vs.glsl
+${CMAKE_CURRENT_SOURCE_DIR}/shader/finalization_fs.glsl
+${CMAKE_CURRENT_SOURCE_DIR}/shader/finalization_vs.glsl
+${CMAKE_CURRENT_SOURCE_DIR}/shader/lighting.glsl
+)
 shader_wrap_cpp(SOURCES_OPENGL_SHADERS "${OPENGL_SHADERS}")
 
 add_executable(surface_splatting
